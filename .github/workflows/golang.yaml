@@ -4,14 +4,17 @@ on: [ push ]
 
 jobs:
   build:
-    - runs-on: ubuntu-latest
-    - steps:
-        - uses: actions/checkout@v3
 
-        - name: Set up Go
-          uses: actions/setup-go@v4
-          with:
-            go-version: '1.19'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-        - name: Test
-          run: go test -v ./...
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+
+      - name: Test
+        run: go test -v ./...
+        env:
+          STORAGE_LOCK_MYSQL_DSN: "root:UeGqAm8CxYGldMDLoNNt@tcp(127.0.0.1:3306)/storage_lock_test"
