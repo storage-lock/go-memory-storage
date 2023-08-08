@@ -1,6 +1,6 @@
 module github.com/storage-lock/go-memory-storage
 
-go 1.18
+go 1.19
 
 require (
 	github.com/beevik/ntp v1.3.0 // indirect
@@ -12,11 +12,12 @@ require (
 	github.com/golang-infrastructure/go-variable-parameter v0.0.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/storage-lock/go-events v0.0.0-20230804183027-74c12adf7917 // indirect
-	github.com/storage-lock/go-storage v0.0.0-20230804173446-351fafb1a6ff // indirect
-	github.com/storage-lock/go-storage-lock v0.0.0-20230804183519-baddaf503cf6 // indirect
-	github.com/storage-lock/go-storage-test-helper v0.0.0-20230804163147-18f3bea87f4e // indirect
-	github.com/storage-lock/go-utils v0.0.0-20230804131655-6dbe431cdc1a // indirect
+	github.com/storage-lock/go-events v0.0.1 // indirect
+	github.com/storage-lock/go-storage v0.0.2 // indirect
+	github.com/storage-lock/go-storage-events v0.0.2 // indirect
+	github.com/storage-lock/go-storage-lock v0.0.2 // indirect
+	github.com/storage-lock/go-storage-test-helper v0.0.2 // indirect
+	github.com/storage-lock/go-utils v0.0.2 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	golang.org/x/net v0.13.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect

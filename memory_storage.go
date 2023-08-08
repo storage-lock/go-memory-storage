@@ -12,7 +12,7 @@ import (
 
 // ------------------------------------------------ ---------------------------------------------------------------------
 
-// MemoryStorage 把锁存储在内存中，可以借助这个实现单机的锁，算是对内部的锁的一个扩展，但是似乎作用不是很大，仅仅是为了丰富实现...
+// MemoryStorage 把锁存储在内存中，可以借助这个实现进程级别的锁，算是对内部的锁的一个扩展，但是似乎作用不是很大，仅仅是为了丰富实现...
 // 也可以认为这个Storage是一个实现的样例，其它的存储引擎的实现可以参考此实现的逻辑
 type MemoryStorage struct {
 
@@ -74,7 +74,7 @@ func (x *MemoryStorage) UpdateWithVersion(ctx context.Context, lockId string, ex
 	return nil
 }
 
-func (x *MemoryStorage) InsertWithVersion(ctx context.Context, lockId string, version storage.Version, lockInformation *storage.LockInformation) error {
+func (x *MemoryStorage) CreateWithVersion(ctx context.Context, lockId string, version storage.Version, lockInformation *storage.LockInformation) error {
 	x.storageLock.Lock()
 	defer x.storageLock.Unlock()
 
