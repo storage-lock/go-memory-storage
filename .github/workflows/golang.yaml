@@ -16,5 +16,3 @@ jobs:
 
       - name: Test
         run: go test -v ./...
-        env:
-          STORAGE_LOCK_MYSQL_DSN: "root:UeGqAm8CxYGldMDLoNNt@tcp(127.0.0.1:3306)/storage_lock_test"
