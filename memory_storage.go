@@ -36,6 +36,16 @@ func (x *MemoryStorage) GetName() string {
 	return "memory-storage"
 }
 
+// Capabilities 声明内存存储支持的能力
+// 内存存储通过 sync.RWMutex 保护的原子操作支持 CAS，
+// 使用本地 time.Now() 作为时间源（单进程内时间天然一致，但不适用于跨进程场景）
+func (x *MemoryStorage) Capabilities() []storage.StorageCapability {
+	return []storage.StorageCapability{
+		storage.CapabilityCAS,
+		storage.CapabilityReliableTime,
+	}
+}
+
 func (x *MemoryStorage) Init(ctx context.Context) error {
 	// 没有要初始化的，在创建的时候就初始化了
 	return nil
