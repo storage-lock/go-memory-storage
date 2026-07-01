@@ -43,6 +43,7 @@ func (x *MemoryStorage) Capabilities() []storage.StorageCapability {
 	return []storage.StorageCapability{
 		storage.CapabilityCAS,
 		storage.CapabilityReliableTime,
+		storage.CapabilityAtomicDelete,
 	}
 }
 
