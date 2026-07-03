@@ -135,15 +135,21 @@ func (x *MemoryStorage) Close(ctx context.Context) error {
 }
 
 func (x *MemoryStorage) List(ctx context.Context) (iterator.Iterator[*storage.LockInformation], error) {
-	slice := make([]*storage.LockInformation, 0)
+	// 漏洞修复：原遍历 x.storageMap 未持锁，与并发的 Create/Update/Delete（持写锁改 map）触发
+	// Go 运行时 fatal error: concurrent map read and map write（不可 recover，进程崩溃）。
+	// 持读锁拷贝到 slice 后再返回迭代器，遍历期间锁保护 map。
+	x.storageLock.RLock()
+	slice := make([]*storage.LockInformation, 0, len(x.storageMap))
 	for _, lock := range x.storageMap {
 		info := &storage.LockInformation{}
 		err := json.Unmarshal([]byte(lock.LockInformationJsonString), &info)
 		if err != nil {
+			x.storageLock.RUnlock()
 			return nil, err
 		}
 		slice = append(slice, info)
 	}
+	x.storageLock.RUnlock()
 	return iterator.FromSlice(slice), nil
 }
 
