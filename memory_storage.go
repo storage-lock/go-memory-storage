@@ -44,7 +44,12 @@ func (x *MemoryStorage) Capabilities() []storage.StorageCapability {
 		storage.CapabilityCAS,
 		storage.CapabilityReliableTime,
 		storage.CapabilityAtomicDelete,
+		storage.CapabilityWatch,
 	}
+}
+
+func (x *MemoryStorage) Watch(ctx context.Context, lockId string) (<-chan *storage.LockInformation, error) {
+	return storage.NewPollingLockWatcher(x, 500*time.Millisecond).Watch(ctx, lockId)
 }
 
 func (x *MemoryStorage) Init(ctx context.Context) error {
@@ -69,9 +74,13 @@ func (x *MemoryStorage) UpdateWithVersion(ctx context.Context, lockId string, ex
 	defer x.storageLock.Unlock()
 
 	// 被更新的锁必须已经存在，否则无法更新
+	// 注意：映射为 ErrVersionMiss 而不是 ErrLockNotFound——core 的 lockExpired/rlockReclaim
+	// 等抢占路径只把 ErrVersionMiss 当作"CAS 失败，可重试"，其它错误会被当作硬错误直接返回。
+	// 若真正的持有者恰好在这中间 DeleteWithVersion 真删了记录（与本次抢占竞态），
+	// "记录不存在"和"版本不匹配"对调用方而言是同一件事：期望的前提已经不成立，应该重试。
 	oldValue, exists := x.storageMap[lockId]
 	if !exists {
-		return storage_lock.ErrLockNotFound
+		return storage_lock.ErrVersionMiss
 	}
 
 	// 乐观锁的版本必须能够对应得上，否则拒绝更新
