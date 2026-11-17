@@ -45,6 +45,7 @@ func (x *MemoryStorage) Capabilities() []storage.StorageCapability {
 		storage.CapabilityReliableTime,
 		storage.CapabilityAtomicDelete,
 		storage.CapabilityWatch,
+		storage.CapabilityAtomicBatch,
 	}
 }
 
@@ -160,6 +161,44 @@ func (x *MemoryStorage) List(ctx context.Context) (iterator.Iterator[*storage.Lo
 	}
 	x.storageLock.RUnlock()
 	return iterator.FromSlice(slice), nil
+}
+
+// CompareAndSwapBatch 在同一把互斥锁里检查并写入全部 key。
+// 先完整检查，再写入；任一条件失败时 map 保持调用前的内容。
+func (x *MemoryStorage) CompareAndSwapBatch(ctx context.Context, ops []storage.CASOp) error {
+	if len(ops) == 0 {
+		return nil
+	}
+	x.storageLock.Lock()
+	defer x.storageLock.Unlock()
+	seen := make(map[string]struct{}, len(ops))
+	for _, op := range ops {
+		if op.LockID == "" || op.Information == nil || op.NewVersion == 0 {
+			return storage_lock.ErrInvalidOptions
+		}
+		if _, dup := seen[op.LockID]; dup {
+			return storage_lock.ErrInvalidOptions
+		}
+		seen[op.LockID] = struct{}{}
+		current, exists := x.storageMap[op.LockID]
+		if op.ExpectedVersion == 0 {
+			if exists {
+				return storage_lock.ErrLockAlreadyExists
+			}
+			continue
+		}
+		if !exists || current.Version != op.ExpectedVersion {
+			return storage_lock.ErrVersionMiss
+		}
+	}
+	for _, op := range ops {
+		x.storageMap[op.LockID] = &MemoryStorageValue{
+			LockId:                    op.LockID,
+			Version:                   op.NewVersion,
+			LockInformationJsonString: op.Information.ToJsonString(),
+		}
+	}
+	return nil
 }
 
 // ------------------------------------------------ ---------------------------------------------------------------------
